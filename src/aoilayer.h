@@ -54,6 +54,8 @@ protected:
     OGRGeometry *       HandleLine( HFAEntry *pInfo, Efga_Polynomial *pPoly );
     OGRGeometry *       HandlePoint( HFAEntry *pInfo, Efga_Polynomial *pPoly );
 
+    int m_nEllipsisSteps;
+
   public:
     OGRAOILayer( HFAEntry *pAOInode, const char *pszBasename );
    ~OGRAOILayer();

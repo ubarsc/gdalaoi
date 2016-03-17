@@ -49,10 +49,6 @@
 //                              Polgon2 (Polygon Info)
 //                              ...
 
-// number of points created in the polygon for Ellipsis
-// Would be nice to be able to alter this via metadata
-#define ELLIPSESTEPS 36
-
 // Constructor
 OGRAOILayer::OGRAOILayer( HFAEntry *pAOInode, const char *pszBasename )
 {
@@ -74,6 +70,15 @@ OGRAOILayer::OGRAOILayer( HFAEntry *pAOInode, const char *pszBasename )
 
     OGRFieldDefn oFieldDescription( "Description", OFTString );
     m_poFeatureDefn->AddFieldDefn( &oFieldDescription );
+
+    // get the number of steps for creating an ellipsis from the config
+    const char *pszNSteps = CPLGetConfigOption("OGR_AOI_ELLIPSIS_STEPS", "36");
+    m_nEllipsisSteps = atol(pszNSteps);
+    if( m_nEllipsisSteps <= 0 )
+    {
+        CPLError(CE_Failure, CPLE_IllegalArg, "OGR_AOI_ELLIPSIS_STEPS <= zero or invalid. Using 36");
+        m_nEllipsisSteps = 36;
+    }
 }
 
 // Destructor - release attached feature defn and spatial ref
@@ -324,7 +329,7 @@ OGRGeometry *OGRAOILayer::HandleEllipse( HFAEntry *pInfo, Efga_Polynomial *pPoly
         // Do maths to get points and add to wkt
         CPLString sWKT("POLYGON((");
         CPLString osBuffer;
-        for( dAlpha = 0; dAlpha < 360; dAlpha += (360.0/ELLIPSESTEPS) )
+        for( dAlpha = 0; dAlpha < 360; dAlpha += (360.0/m_nEllipsisSteps) )
         {
             dX = dCenterX + (dSemiMajor * cos(dAlpha / 180.0 * M_PI));
             dY = dCenterY + (dSemiMinor * sin(dAlpha / 180.0 * M_PI));

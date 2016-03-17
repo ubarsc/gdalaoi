@@ -194,7 +194,7 @@ int OGRAOIDataSource::Open( const char *pszFilename, int bUpdate )
 /* -------------------------------------------------------------------- */
 /*      Instantiate the root entry.                                     */
 /* -------------------------------------------------------------------- */
-    m_psInfo->poRoot = new HFAEntry( m_psInfo, m_psInfo->nRootPos, NULL, NULL );
+    m_psInfo->poRoot = HFAEntry::New( m_psInfo, m_psInfo->nRootPos, NULL, NULL );
 
 /* -------------------------------------------------------------------- */
 /*      Read the dictionary                                             */

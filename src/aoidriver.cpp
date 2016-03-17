@@ -20,39 +20,41 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include "aoidriver.h"
 #include "aoidatasource.h"
-
-// see http://www.gdal.org/ogr/ogr_drivertut.html
 
 // Must be C callable
 CPL_C_START
     void CPL_DLL RegisterOGRAOI();
 CPL_C_END
 
-void RegisterOGRAOI()
+static int OGRAOIDriverIdentify( GDALOpenInfo* poOpenInfo )
 {
-    OGRSFDriverRegistrar::GetRegistrar()->RegisterDriver( new OGRAOIDriver() );
-}
+    // first, is it .aoi?
+    if( !EQUAL( CPLGetExtension(poOpenInfo->pszFilename), "aoi" ) )
+        return FALSE;
 
-OGRAOIDriver::~OGRAOIDriver()
-{
-}
-
-// Returns the name I have given this driver
-const char *OGRAOIDriver::GetName()
-{
-    return "ERDAS Imagine AOI";
+/* -------------------------------------------------------------------- */
+/*      Verify that this is a HFA file.                                 */
+/* -------------------------------------------------------------------- */
+    if( poOpenInfo->nHeaderBytes < 15
+        || !EQUALN((char *) poOpenInfo->pabyHeader,"EHFA_HEADER_TAG",15) )
+        return FALSE;
+    else
+        return TRUE;
 }
 
 /* Try opening the datasource as an AOI */
 /* If successful, return a pointer to a new instance of OGRAOIDataSource */
 /* otherwise return NULL */
-OGRDataSource* OGRAOIDriver::Open( const char *pszFileame, int bUpdate )
+static GDALDataset* OGRAOIDriverOpen(GDALOpenInfo* poOpenInfo)
 {
+    if( !OGRAOIDriverIdentify(poOpenInfo) )
+        return NULL;
+
     OGRAOIDataSource *poDS = new OGRAOIDataSource();
 
-    if( !poDS->Open( pszFileame, bUpdate ) )
+    if( !poDS->Open( poOpenInfo->pszFilename, 
+                poOpenInfo->eAccess == GA_Update ) )
     {
         delete poDS;
         return NULL;
@@ -63,27 +65,23 @@ OGRDataSource* OGRAOIDriver::Open( const char *pszFileame, int bUpdate )
     }
 }
 
-/* Test the capabilities of this driver */
-/* we can't create datasets, but we can delete them */
-int OGRAOIDriver::TestCapability( const char * pszCap )
+void RegisterOGRAOI()
 {
-    if( EQUAL(pszCap,ODrCCreateDataSource) )
-        return FALSE;
-    else if( EQUAL(pszCap,ODrCDeleteDataSource) )
-        return TRUE;
-    else
-        return FALSE;
-}
+    GDALDriver  *poDriver;
 
-/* Delete the data source - quite easy it is just one file */
-int OGRAOIDriver::DeleteDataSource( const char *pszName )
-{
-    if( VSIUnlink( pszName ) != 0 )
+    if( GDALGetDriverByName( "AOI" ) == NULL )
     {
-        CPLError( CE_Failure, CPLE_AppDefined,
-                  "Attempt to unlink %s failed.\n", pszName );
-        return OGRERR_FAILURE;
+        poDriver = new GDALDriver();
+
+        poDriver->SetDescription( "AOI" );
+        poDriver->SetMetadataItem( GDAL_DCAP_VECTOR, "YES" );
+        poDriver->SetMetadataItem( GDAL_DMD_LONGNAME,
+                                   "ERDAS Imagine AOI" );
+        poDriver->SetMetadataItem( GDAL_DMD_EXTENSION, "aoi" );
+
+        poDriver->pfnIdentify = OGRAOIDriverIdentify;
+        poDriver->pfnOpen = OGRAOIDriverOpen;
+
+        GetGDALDriverManager()->RegisterDriver( poDriver );
     }
-    else
-        return OGRERR_NONE;
 }

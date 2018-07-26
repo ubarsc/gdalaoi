@@ -1,0 +1,26 @@
+# This is my (Neil's) build instructions for the AOI driver. Mainly it is about knowing the cmake
+# incantation, and also knowing that you need the GDAL source code available. 
+#
+# If anyone would care to re-write this as a more generic INSTALL.txt, feel free. 
+
+# You will need the GDAL source code handy. Unzip it into the current directory, e.g.
+#     tar xfJ gdal-2.3.0.tar.xz
+#
+# Know what your preferred C anc C++ compilers are called. 
+# Know where to find your GDAL include and lib files, which are in the GDAL install directory. 
+#
+
+cmake \
+    -DCMAKE_C_COMPILER=gcc-7 \
+    -DCMAKE_CXX_COMPILER=g++-7 \
+    -DGDAL_LIB_PATH=$GDAL_ROOT/lib \
+    -DGDAL_INCLUDE_DIR=$GDAL_ROOT/include \
+    -DGDAL_SRC_PATH=gdal-2.3.0 \
+    -DCMAKE_CXX_STANDARD=11 \
+    .
+
+make
+
+# Copy the resulting ogr_AOI.so to the directory set aside for it, 
+# which will then be in the GDAL_DRIVER_PATH
+# e.g. cp ogr_AOI.so $AOI_DRIVER_HOME

@@ -31,12 +31,12 @@
 /* Adapted from HFADataset::ReadProjection                              */
 /************************************************************************/
 
-OGRSpatialReference* CreateSpatialReference( HFAEntry* pAOInode )
+std::unique_ptr<OGRSpatialReference> CreateSpatialReference( HFAEntry* pAOInode )
 {
     const Eprj_Datum	      *psDatum;
     const Eprj_ProParameters  *psPro;
     const Eprj_MapInfo        *psMapInfo;
-    OGRSpatialReference *pSRS = NULL;
+    std::unique_ptr<OGRSpatialReference> SRS;
 
 // Each AOI has a projection (which are all the same). Just get the first 
 // one and use that
@@ -77,14 +77,8 @@ OGRSpatialReference* CreateSpatialReference( HFAEntry* pAOInode )
     }
     else
     {
-        char *pszProjection = HFAPCSStructToWKT( psDatum, psPro, psMapInfo, 
+        SRS = HFAPCSStructToOSR( psDatum, psPro, psMapInfo, 
                                        poMapInformation );
-
-        // note: already has a reference count of 1
-        pSRS = new OGRSpatialReference( pszProjection );
-
-        // Cleanup
-        CPLFree( pszProjection );
     }
 
     if( psPro != NULL )
@@ -108,7 +102,7 @@ OGRSpatialReference* CreateSpatialReference( HFAEntry* pAOInode )
         CPLFree( psMapInfo->units );
         CPLFree( (void*)psMapInfo );
     }
-    return pSRS;
+    return SRS;
 }
 
 /************************************************************************/

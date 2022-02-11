@@ -86,8 +86,6 @@ OGRAOILayer::~OGRAOILayer()
 {
     if( m_poFeatureDefn != NULL )
         m_poFeatureDefn->Release();
-    if( m_poSpatialRef != NULL )
-        m_poSpatialRef->Release();
 }
 
 // Return the spatial reference for this layer
@@ -95,13 +93,13 @@ OGRAOILayer::~OGRAOILayer()
 // been asked, or return cached copy
 OGRSpatialReference* OGRAOILayer::GetSpatialRef()
 {
-    if( m_poSpatialRef == NULL )
+    if( m_poSpatialRef.get() == NULL )
     {
         // note: already assigned refcount of 1 on creation
         m_poSpatialRef = CreateSpatialReference( m_pAOInode );
     }
 
-    return m_poSpatialRef;
+    return m_poSpatialRef.get();
 }
 
 /* Returns the next Eaoi_AoiObjectType to use */
@@ -233,7 +231,7 @@ OGRGeometry * OGRAOILayer::HandlePolygon( HFAEntry *pInfo, Efga_Polynomial *pPol
         // Create OGRGeometry object
         const char *pszData = wkt.c_str();
         OGRGeometry *pGeom;
-        if( OGRGeometryFactory::createFromWkt( const_cast<char **>(&pszData), GetSpatialRef(), &pGeom ) == OGRERR_NONE )
+        if( OGRGeometryFactory::createFromWkt( &pszData, GetSpatialRef(), &pGeom ) == OGRERR_NONE )
         {
             return pGeom;
         }
@@ -292,7 +290,7 @@ OGRGeometry *OGRAOILayer::HandleRectangle( HFAEntry *pInfo, Efga_Polynomial *pPo
         // Create OGRGeometry object
         const char *pszData = sWKT.c_str();
         OGRGeometry *pGeom;
-        if( OGRGeometryFactory::createFromWkt( const_cast<char **>(&pszData), GetSpatialRef(), &pGeom ) == OGRERR_NONE )
+        if( OGRGeometryFactory::createFromWkt( &pszData, GetSpatialRef(), &pGeom ) == OGRERR_NONE )
         {
             return pGeom;
         }
@@ -350,7 +348,7 @@ OGRGeometry *OGRAOILayer::HandleEllipse( HFAEntry *pInfo, Efga_Polynomial *pPoly
         // Create OGRGeometry object
         const char *pszData = sWKT.c_str();
         OGRGeometry *pGeom;
-        if( OGRGeometryFactory::createFromWkt( const_cast<char **>(&pszData), GetSpatialRef(), &pGeom ) == OGRERR_NONE )
+        if( OGRGeometryFactory::createFromWkt( &pszData, GetSpatialRef(), &pGeom ) == OGRERR_NONE )
         {
             return pGeom;
         }
@@ -404,7 +402,7 @@ OGRGeometry *OGRAOILayer::HandleLine( HFAEntry *pInfo, Efga_Polynomial *pPoly )
         // create OGRGeometry object
         const char *pszData = wkt.c_str();
         OGRGeometry *pGeom;
-        if( OGRGeometryFactory::createFromWkt( const_cast<char **>(&pszData), GetSpatialRef(), &pGeom ) == OGRERR_NONE )
+        if( OGRGeometryFactory::createFromWkt(&pszData, GetSpatialRef(), &pGeom ) == OGRERR_NONE )
         {
             return pGeom;
         }
@@ -446,7 +444,7 @@ OGRGeometry *OGRAOILayer::HandlePoint( HFAEntry *pInfo, Efga_Polynomial *pPoly )
         // Create OGRGeometry class
         const char *pszData = sWKT.c_str();
         OGRGeometry *pGeom;
-        if( OGRGeometryFactory::createFromWkt( const_cast<char **>(&pszData), GetSpatialRef(), &pGeom ) == OGRERR_NONE )
+        if( OGRGeometryFactory::createFromWkt( &pszData, GetSpatialRef(), &pGeom ) == OGRERR_NONE )
         {
             return pGeom;
         }

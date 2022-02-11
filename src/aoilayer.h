@@ -35,7 +35,7 @@ class OGRAOILayer : public OGRLayer
 {
 protected:
     OGRFeatureDefn         *m_poFeatureDefn;
-    OGRSpatialReference    *m_poSpatialRef;
+    std::unique_ptr<OGRSpatialReference>    m_poSpatialRef;
 
     HFAEntry               *m_pAOInode;
     HFAEntry               *m_pAOIObject; // pointer to current Eaoi_AoiObjectType

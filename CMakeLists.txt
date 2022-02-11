@@ -31,8 +31,11 @@ option(BUILD_SHARED_LIBS "Build with shared library" ON)
 
 set(GDALAOI_LIB_NAME ogr_AOI)
 
-set(GDAL_INCLUDE_DIR /usr/local/include CACHE PATH "Include PATH for GDAL")
-set(GDAL_LIB_PATH /usr/local/lib CACHE PATH "Library PATH for GDAL")
+find_package(GDAL REQUIRED)
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 set(GDAL_SRC_PATH /usr/local/lib/src/gdal CACHE PATH "Source PATH for GDAL")
 set(GDAL_HFA_SRC_PATH ${GDAL_SRC_PATH}/frmts/hfa)
 
@@ -95,11 +98,6 @@ endif(APPLE)
 ###############################################################################
 
 include_directories(${GDAL_INCLUDE_DIR} ${GDAL_HFA_SRC_PATH})
-if (WIN32)
-  set(GDAL_LIBRARIES -LIBPATH:"${GDAL_LIB_PATH}" gdal_i.lib)
-else()
-  set(GDAL_LIBRARIES -L${GDAL_LIB_PATH} -lgdal)
-endif(WIN32)
 
 ###############################################################################
 # Build library
